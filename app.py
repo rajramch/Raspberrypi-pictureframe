@@ -25,6 +25,8 @@ def create():
             flash('Content is required!')
         else:
             messages.append({'title': title, 'content': content})
+            print(title)
+            print(content)
             return redirect(url_for('index'))
 
     return render_template('create.html')
