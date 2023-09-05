@@ -18,7 +18,7 @@ def index():
 @app.route('/create/', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
-        img = request.form['img']
+        img = request.files['img']
         change_image(img)
     return render_template('create.html')
 
