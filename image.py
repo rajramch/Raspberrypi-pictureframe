@@ -4,9 +4,9 @@ import sys
 
 from PIL import Image
 
-from inky import Inky_Impression_7
+from inky import Inky_Impressions_7
 
-inky = Inky_Impression_7()
+inky = Inky_Impressions_7()
 saturation = 0.5
 
 if len(sys.argv) == 1:
