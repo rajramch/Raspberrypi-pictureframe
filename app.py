@@ -20,7 +20,7 @@ def create():
     if request.method == 'POST':
         img = request.form['img']
         change_image(img)
-        return render_template('create.html')
+    return render_template('create.html')
 
 def change_image(img):
     inky = Inky_Impressions_7()
