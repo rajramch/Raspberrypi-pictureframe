@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 from PIL import Image
-from inky.auto import auto
+from inky import Inky_Impressions_7
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
@@ -18,10 +18,14 @@ def index():
 @app.route('/create/', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
-        inky = auto(ask_user=True, verbose=True)
-        saturation = 0.5
-        
+        img = request.form['img']
+        change_image(img)
+        return render_template('create.html')
 
-    return render_template('create.html')
+def change_image(img):
+    inky = Inky_Impressions_7()
+    saturation = 0.5
+    image = Image.open(img)
+    resizedimage = image.resize(inky.resolution)
+    inky.set_image(resizedimage, saturation=saturation)
+    inky.show()
