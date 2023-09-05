@@ -5,18 +5,17 @@ from inky import Inky_Impressions_7
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
 
-messages = [{'title': 'Message One',
-             'content': 'Message One Content'},
-            {'title': 'Message Two',
-             'content': 'Message Two Content'}
-            ]
-
 @app.route('/', methods=('GET', 'POST'))
 def index():
     if request.method == 'POST':
         img = request.files['img']
         change_image(img)
+        return render_template('done.html')
     return render_template('index.html')
+
+@app.route('/done')
+def index():
+    return render_template('done.html')
 
 def change_image(img):
     inky = Inky_Impressions_7()
