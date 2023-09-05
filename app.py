@@ -11,16 +11,12 @@ messages = [{'title': 'Message One',
              'content': 'Message Two Content'}
             ]
 
-@app.route('/')
+@app.route('/', methods=('GET', 'POST'))
 def index():
-    return render_template('index.html', messages=messages)
-
-@app.route('/create/', methods=('GET', 'POST'))
-def create():
     if request.method == 'POST':
         img = request.files['img']
         change_image(img)
-    return render_template('create.html')
+    return render_template('index.html')
 
 def change_image(img):
     inky = Inky_Impressions_7()
