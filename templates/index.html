@@ -7,6 +7,6 @@
         <input type="file" name="img" id="img" accept="image/*"
                value="{{ request.form['img'] }}"></input>
         <br>
-        <button type="submit">Submit</button>
+        <input type="submit" name="anything_submit" value="Submit" onclick="loading();">Submit</input>
     </form>
 {% endblock %}
