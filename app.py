@@ -14,7 +14,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/done')
-def index():
+def done():
     return render_template('done.html')
 
 def change_image(img):
