@@ -6,7 +6,7 @@ This will also have a future expansion by using the gpio buttons on the screen t
 
 Steps to run
 
-sudo su
-export FLASK_ENV=development
-export FLASK_APP=app
-flask run -h 0.0.0.0 -p 80
+sudo su <br>
+export FLASK_ENV=development <br>
+export FLASK_APP=app <br>
+flask run -h 0.0.0.0 -p 80 <br>
