@@ -413,14 +413,21 @@ def serve_image(filename):
 @app.route("/canonical.html")
 @app.route("/ncsi.txt")
 @app.route("/connecttest.txt")
+@app.route("/redirect")
 def captive_portal():
-    return redirect(url_for("index"))
+    # Explicitly redirect to the Pi's local IP so browsers and OS captive portal detectors
+    # navigate to the picture frame dashboard instead of external domain redirects (e.g. MSN)
+    return redirect("http://192.168.4.1/")
 
 
 @app.errorhandler(404)
 def handle_404(e):
-    # When captive portal DNS intercepts all domains, redirect unknown URLs to the home page
-    return redirect(url_for("index"))
+    # When captive portal DNS intercepts external domains (e.g. www.msftconnecttest.com),
+    # redirect explicitly to the Pi's IP address.
+    host = request.host.split(":")[0]
+    if host in {"192.168.4.1", "rpizero.local", "127.0.0.1", "localhost"}:
+        return redirect(url_for("index"))
+    return redirect("http://192.168.4.1/")
 
 
 # Start the slideshow worker thread once
