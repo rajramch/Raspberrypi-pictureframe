@@ -200,7 +200,7 @@ chmod +x setup_hotspot.sh enable_hotspot.sh connect_wifi.sh
 > NetworkManager on Pi Zero W requires Protected Management Frames to be disabled (`pmf 1`) and cipher suites locked to WPA2-PSK (`proto rsn`, `pairwise ccmp`, `group ccmp`), which `setup_hotspot.sh` automatically configures.
 
 * **Wi-Fi SSID**: `PictureFrame`
-* **Password**: `raspberry`
+* **Security**: Open (No password required)
 * **IP Address**: `192.168.4.1`
 * **Captive Portal**: Any Android phone, iPhone, Mac, or PC that connects to `PictureFrame` will automatically receive a *"Sign in to network"* notification or can visit `http://192.168.4.1` (or `http://rpizero.local`) to access the picture frame studio immediately.
 * **To switch back to normal Wi-Fi**:
