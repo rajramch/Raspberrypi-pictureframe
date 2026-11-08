@@ -174,3 +174,25 @@ Then run:
 ```bash
 sudo systemctl daemon-reload && sudo systemctl restart inkyweb.service
 ```
+
+---
+
+## 10. Standalone Wi-Fi Hotspot Mode (Captive Portal)
+
+If you do not want to use your phone's hotspot or a home Wi-Fi network, the Raspberry Pi can broadcast its own dedicated Wi-Fi network:
+
+### Set Up Hotspot Profile
+```bash
+chmod +x setup_hotspot.sh enable_hotspot.sh connect_wifi.sh
+./setup_hotspot.sh
+./enable_hotspot.sh
+```
+
+* **Wi-Fi SSID**: `PictureFrame`
+* **Password**: `raspberry`
+* **IP Address**: `192.168.4.1`
+* **Captive Portal**: Any Android phone, iPhone, Mac, or PC that connects to `PictureFrame` will automatically receive a *"Sign in to network"* notification that opens the picture frame dashboard immediately.
+* **To switch back to normal Wi-Fi**:
+  ```bash
+  ./connect_wifi.sh
+  ```

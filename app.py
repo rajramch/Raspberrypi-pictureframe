@@ -406,6 +406,23 @@ def serve_image(filename):
     return send_from_directory(IMAGES_DIR, safe_name)
 
 
+# Captive portal probe redirects (for automatic popup on Android, iOS, Windows, Mac)
+@app.route("/generate_204")
+@app.route("/gen_204")
+@app.route("/hotspot-detect.html")
+@app.route("/canonical.html")
+@app.route("/ncsi.txt")
+@app.route("/connecttest.txt")
+def captive_portal():
+    return redirect(url_for("index"))
+
+
+@app.errorhandler(404)
+def handle_404(e):
+    # When captive portal DNS intercepts all domains, redirect unknown URLs to the home page
+    return redirect(url_for("index"))
+
+
 # Start the slideshow worker thread once
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
     slideshow_thread = threading.Thread(target=slideshow_worker, daemon=True)
