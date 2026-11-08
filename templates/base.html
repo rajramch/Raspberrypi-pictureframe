@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inky Frame Dashboard</title>
   
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='w3.css') }}">
+  <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='cropper.min.css') }}">
   <script src="{{ url_for('static', filename='cropper.min.js') }}"></script>
   
   <style>
-    body, h1, h2, h3, h4, h5, h6 { font-family: "Inter", sans-serif; }
+    body, h1, h2, h3, h4, h5, h6 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f4f9; color: #333; margin: 0; padding-bottom: 60px; }
     
     /* Center card containers */
