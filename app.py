@@ -406,6 +406,12 @@ def serve_image(filename):
     return send_from_directory(IMAGES_DIR, safe_name)
 
 
+@app.route("/favicon.ico")
+def favicon():
+    # Return 204 No Content so browsers don't loop on missing favicon
+    return ("", 204)
+
+
 # Captive portal probe redirects (for automatic popup on Android, iOS, Windows, Mac)
 @app.route("/generate_204")
 @app.route("/gen_204")
@@ -415,15 +421,16 @@ def serve_image(filename):
 @app.route("/connecttest.txt")
 @app.route("/redirect")
 def captive_portal():
-    # Explicitly redirect to the Pi's local IP so browsers and OS captive portal detectors
-    # navigate to the picture frame dashboard instead of external domain redirects (e.g. MSN)
     return redirect("http://192.168.4.1/")
 
 
 @app.errorhandler(404)
 def handle_404(e):
-    # When captive portal DNS intercepts external domains (e.g. www.msftconnecttest.com),
-    # redirect explicitly to the Pi's IP address.
+    # Never redirect static assets or common browser probe files to avoid ERR_TOO_MANY_REDIRECTS
+    path = request.path.lower()
+    if path.endswith((".ico", ".png", ".jpg", ".jpeg", ".css", ".js", ".map", ".json", ".txt")):
+        return ("Not Found", 404)
+
     host = request.host.split(":")[0]
     if host in {"192.168.4.1", "rpizero.local", "127.0.0.1", "localhost"}:
         return redirect(url_for("index"))
