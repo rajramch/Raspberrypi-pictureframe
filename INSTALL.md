@@ -175,11 +175,19 @@ Then run:
 sudo systemctl daemon-reload && sudo systemctl restart inkyweb.service
 ```
 
+### Prevent HDMI Console from Going Blank (Display Timeout)
+On Raspberry Pi OS, the HDMI screen turns black after 10-15 minutes of inactivity (console blanking). If you connect a monitor or TV to view the terminal or debug settings, add `consoleblank=0` to prevent the screen from going blank:
+
+```bash
+sudo sed -i 's/$/ consoleblank=0/' /boot/firmware/cmdline.txt
+```
+*(Pressing any key on a connected keyboard also wakes the screen instantly).*
+
 ---
 
 ## 10. Standalone Wi-Fi Hotspot Mode (Captive Portal)
 
-If you do not want to use your phone's hotspot or a home Wi-Fi network, the Raspberry Pi can broadcast its own dedicated Wi-Fi network:
+If you do not want to rely on an external home router or mobile hotspot (or to avoid mobile data routing conflicts on Android), the Raspberry Pi can broadcast its own dedicated Wi-Fi network:
 
 ### Set Up Hotspot Profile
 ```bash
@@ -188,10 +196,13 @@ chmod +x setup_hotspot.sh enable_hotspot.sh connect_wifi.sh
 ./enable_hotspot.sh
 ```
 
+> **Technical note for Raspberry Pi Zero W (`brcmfmac`):**
+> NetworkManager on Pi Zero W requires Protected Management Frames to be disabled (`pmf 1`) and cipher suites locked to WPA2-PSK (`proto rsn`, `pairwise ccmp`, `group ccmp`), which `setup_hotspot.sh` automatically configures.
+
 * **Wi-Fi SSID**: `PictureFrame`
 * **Password**: `raspberry`
 * **IP Address**: `192.168.4.1`
-* **Captive Portal**: Any Android phone, iPhone, Mac, or PC that connects to `PictureFrame` will automatically receive a *"Sign in to network"* notification that opens the picture frame dashboard immediately.
+* **Captive Portal**: Any Android phone, iPhone, Mac, or PC that connects to `PictureFrame` will automatically receive a *"Sign in to network"* notification or can visit `http://192.168.4.1` (or `http://rpizero.local`) to access the picture frame studio immediately.
 * **To switch back to normal Wi-Fi**:
   ```bash
   ./connect_wifi.sh

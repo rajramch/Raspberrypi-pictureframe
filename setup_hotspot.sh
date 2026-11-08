@@ -12,7 +12,8 @@ EOF
 # 2. Remove existing Hotspot connection if present
 sudo nmcli connection delete PictureFrame-Hotspot 2>/dev/null || true
 
-# 3. Create NetworkManager Hotspot profile
+# 3. Create NetworkManager Hotspot profile with Raspberry Pi brcmfmac compatible settings
+# (Explicitly disabling PMF/802.11w and enforcing pure WPA2-PSK/CCMP avoids "key setting validation failed")
 sudo nmcli connection add \
     type wifi \
     ifname wlan0 \
@@ -23,6 +24,10 @@ sudo nmcli connection add \
     802-11-wireless.band bg \
     802-11-wireless.channel 6 \
     802-11-wireless-security.key-mgmt wpa-psk \
+    802-11-wireless-security.proto rsn \
+    802-11-wireless-security.pairwise ccmp \
+    802-11-wireless-security.group ccmp \
+    802-11-wireless-security.pmf 1 \
     802-11-wireless-security.psk "raspberry" \
     ipv4.method shared \
     ipv4.addresses 192.168.4.1/24 \
