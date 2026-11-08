@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.current_image
+askpass.bat
+images/

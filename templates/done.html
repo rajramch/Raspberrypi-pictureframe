@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-<div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
-
-    <div class="w3-row-padding w3-padding-16 w3-center" id="food">
-      <div class="content">
-        <h1>{% block title %} Done! {% endblock %}</h1>
-      </div>
-    </div>
+<div class="main-content w3-center w3-animate-opacity">
+  
+  <div style="font-size: 4em; margin-bottom: 12px;">🎉</div>
+  <h2 style="font-weight: 700;">{% block title %} Image Uploaded! {% endblock %}</h2>
+  <p class="w3-text-gray" style="max-width: 500px; margin: 0 auto 24px auto;">
+    Your photo has been optimized and sent to the e-paper screen. It has also been saved to your photo collection and will be included in the 2-hour rotation.
+  </p>
+  
+  <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+    <a href="{{ url_for('index') }}" class="w3-button w3-blue w3-round-large w3-padding-large w3-hover-indigo" style="font-weight: 600;">
+      Upload Another Photo
+    </a>
+    <a href="{{ url_for('gallery') }}" class="w3-button w3-light-gray w3-border w3-round-large w3-padding-large w3-hover-gray" style="font-weight: 500;">
+      View All in Rotation &rarr;
+    </a>
   </div>
-  {% endblock %}
+  
+</div>
+{% endblock %}

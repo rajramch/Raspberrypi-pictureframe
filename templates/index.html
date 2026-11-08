@@ -1,20 +1,370 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="main-content w3-center w3-animate-opacity">
+  
+  <h2 style="font-weight: 700; margin-bottom: 8px;">{% block title %} Upload Picture {% endblock %}</h2>
+  <p class="w3-text-gray" style="margin-top: 0; margin-bottom: 24px;">
+    Upload, crop, zoom, and choose orientation for your e-paper frame. New pictures display immediately and are added to the 2-hour rotation.
+  </p>
 
-<div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
-
-    <div class="w3-row-padding w3-padding-16 w3-center" id="food">
-      <div class="content">
-        <h1>{% block title %} Upload Image here: {% endblock %}</h1>
-      <form method="post" enctype="multipart/form-data">
-          <br>
-          <input type="file" name="img" id="img" accept="image/*"
-                 value="{{ request.form['img'] }}" required></input>
-          <br>
-          <input type="submit" name="anything_submit" value="Submit" onclick="loading()">
-      </form>
+  <!-- Rotation Status Banner -->
+  <div class="w3-panel w3-light-gray w3-round-large w3-padding-16" style="text-align: left; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <div style="font-weight: 600; color: #1e88e5; display: flex; align-items: center; gap: 6px;">
+        <span>🔄</span> Auto Slideshow: Active
+      </div>
+      <div class="w3-text-gray w3-small" style="margin-top: 4px;">
+        Photos rotate every <b>{{ interval_hours }} hours</b> &bull; 
+        <b>{{ image_count }}</b> picture{% if image_count != 1 %}s{% endif %} in rotation
       </div>
     </div>
+    <div>
+      <a href="{{ url_for('gallery') }}" class="w3-button w3-white w3-border w3-round-large w3-small w3-hover-blue">
+        Manage Gallery ({{ image_count }}) &rarr;
+      </a>
+    </div>
   </div>
-  {% endblock %}
+
+  <!-- Currently Displayed Preview (if available and not cropping) -->
+  {% if current_image %}
+  <div id="current-display-preview" style="margin-bottom: 24px; text-align: left;">
+    <span class="w3-text-gray w3-small" style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Currently on Screen</span>
+    <div style="margin-top: 8px; position: relative;">
+      <img src="{{ url_for('serve_image', filename=current_image) }}" alt="Current display" class="img-preview" style="max-height: 200px; width: 100%; object-fit: contain; background: #222;">
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Step 1: Initial Drop / Select File Box -->
+  <div id="drop-zone" class="w3-panel w3-round-large w3-padding-32" style="background-color: #fbfbfd; border: 2px dashed #b0bec5; cursor: pointer; transition: 0.2s;" onclick="document.getElementById('img-input').click();">
+    <div style="font-size: 3em; margin-bottom: 8px;">🎨</div>
+    <p style="font-weight: 600; font-size: 1.1em; margin: 4px 0;">Click or drag to choose an image or artwork</p>
+    <p class="w3-text-gray w3-small" style="margin: 0;">Photos, Digital Art, Illustrations &bull; JPG, PNG, WEBP, GIF, BMP</p>
+    <input type="file" id="img-input" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+  </div>
+
+  <!-- Step 2: Interactive Cropping Studio (Revealed once an image is chosen) -->
+  <div id="crop-studio" style="display: none; text-align: left;" class="w3-animate-opacity">
+    
+    <!-- Orientation Chooser Bar -->
+    <div style="margin-bottom: 18px;">
+      <label style="font-weight: 600; font-size: 0.95em; color: #333; display: block; margin-bottom: 8px;">
+        1. Choose Frame Orientation:
+      </label>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" id="btn-horizontal" class="orient-btn active" onclick="setOrientation('horizontal')">
+          <span style="font-size: 1.2em;">↔️</span> <b>Horizontal</b> (Landscape)
+        </button>
+        <button type="button" id="btn-vertical" class="orient-btn" onclick="setOrientation('vertical')">
+          <span style="font-size: 1.2em;">↕️</span> <b>Vertical</b> (Portrait / Art)
+        </button>
+        <button type="button" id="btn-square" class="orient-btn" onclick="setOrientation('square')">
+          <span style="font-size: 1.2em;">⏹️</span> <b>Square</b> (1:1)
+        </button>
+      </div>
+    </div>
+
+    <!-- Sub-options for Vertical Mode -->
+    <div id="vertical-options" style="display: none; margin-bottom: 18px; padding: 14px 18px; background: #f0f7ff; border-left: 4px solid #2196F3; border-radius: 8px;">
+      <div style="font-weight: 600; font-size: 0.9em; margin-bottom: 8px; color: #1565c0;">
+        Physical Display Orientation for Vertical Artwork:
+      </div>
+      <label style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 0.9em;">
+        <input type="radio" name="vertical_mode" value="rotate_clockwise" checked style="margin-top: 3px;">
+        <div>
+          <b>Stand Upright (Portrait Frame)</b><br>
+          <span class="w3-text-gray" style="font-size: 0.85em;">Rotates the image so the right side of the screen is the bottom when your physical frame is standing vertically.</span>
+        </div>
+      </label>
+      <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.9em;">
+        <input type="radio" name="vertical_mode" value="fit_letterbox" style="margin-top: 3px;">
+        <div>
+          <b>Fit on Horizontal Frame (Side Borders)</b><br>
+          <span class="w3-text-gray" style="font-size: 0.85em;">Keeps the physical frame horizontal and centers your vertical artwork with clean borders so none of it is cropped.</span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Crop Instructions & Action Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+      <label style="font-weight: 600; font-size: 0.95em; color: #333; margin: 0;">
+        2. Drag and Zoom to Position:
+      </label>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button type="button" class="tool-btn" onclick="zoomImage(0.1)" title="Zoom in">🔍 +</button>
+        <button type="button" class="tool-btn" onclick="zoomImage(-0.1)" title="Zoom out">🔍 -</button>
+        <button type="button" class="tool-btn" onclick="rotateImage(-90)" title="Rotate 90° Left">↺ 90°</button>
+        <button type="button" class="tool-btn" onclick="rotateImage(90)" title="Rotate 90° Right">↻ 90°</button>
+        <button type="button" class="tool-btn" onclick="resetCropper()" title="Reset Framing">⟲ Reset</button>
+      </div>
+    </div>
+
+    <div class="w3-text-gray w3-small" style="margin-bottom: 10px;">
+      💡 <b>Touch / Mouse controls</b>: Drag the picture to reposition. Pinch or scroll mouse wheel to zoom in or out. Whatever is inside the highlighted box is what will appear on your screen.
+    </div>
+
+    <!-- Cropper Container -->
+    <div style="max-height: 480px; width: 100%; background: #181818; border-radius: 8px; overflow: hidden; border: 1px solid #ddd;">
+      <img id="cropper-target" style="display: block; max-width: 100%;">
+    </div>
+
+    <!-- Zoom Slider for Touch / Fine control -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 14px;">
+      <span style="font-size: 0.85em; font-weight: 600; color: #666;">Zoom:</span>
+      <button type="button" class="tool-btn" style="padding: 2px 8px;" onclick="zoomImage(-0.1)">-</button>
+      <input type="range" id="zoom-range" min="0.1" max="3" step="0.05" value="1" style="width: 200px;" oninput="onZoomSlider(this.value)">
+      <button type="button" class="tool-btn" style="padding: 2px 8px;" onclick="zoomImage(0.1)">+</button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="margin-top: 24px; text-align: center; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <button type="button" class="w3-button w3-blue w3-round-large w3-padding-large w3-hover-indigo" style="font-weight: 600; min-width: 220px;" onclick="uploadCroppedImage()">
+        🚀 Upload & Display on Frame
+      </button>
+      <button type="button" class="w3-button w3-light-gray w3-border w3-round-large w3-padding-large w3-hover-gray" onclick="changeImageFile()">
+        Choose Different Image
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  .orient-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 14px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #444;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .orient-btn:hover {
+    border-color: #2196F3;
+    color: #2196F3;
+  }
+  .orient-btn.active {
+    border-color: #2196F3;
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+  }
+  .tool-btn {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .tool-btn:hover {
+    background: #f0f0f0;
+  }
+  /* Style cropper handles */
+  .cropper-view-box {
+    outline: 2px solid #2196F3;
+    outline-color: rgba(33, 150, 243, 0.9);
+  }
+  .cropper-line {
+    background-color: #2196F3;
+  }
+  .cropper-point {
+    background-color: #2196F3;
+    width: 10px;
+    height: 10px;
+  }
+</style>
+
+<script>
+let cropper = null;
+let currentOrientation = 'horizontal';
+let currentFile = null;
+let baseZoom = 1;
+
+function handleFileSelect(input) {
+  if (!input.files || input.files.length === 0) return;
+  currentFile = input.files[0];
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const targetImg = document.getElementById('cropper-target');
+    targetImg.src = e.target.result;
+
+    // Switch view from dropzone to studio
+    document.getElementById('drop-zone').style.display = 'none';
+    const preview = document.getElementById('current-display-preview');
+    if (preview) preview.style.display = 'none';
+    document.getElementById('crop-studio').style.display = 'block';
+
+    initCropper();
+  };
+  reader.readAsDataURL(currentFile);
+}
+
+function initCropper() {
+  if (cropper) {
+    cropper.destroy();
+  }
+  const targetImg = document.getElementById('cropper-target');
+  let ratio = 800 / 480;
+  if (currentOrientation === 'vertical') ratio = 480 / 800;
+  if (currentOrientation === 'square') ratio = 1 / 1;
+
+  cropper = new Cropper(targetImg, {
+    aspectRatio: ratio,
+    viewMode: 1, // Keep crop box within image boundaries
+    dragMode: 'move', // Allow user to drag the picture around
+    autoCropArea: 0.95,
+    responsive: true,
+    restore: false,
+    guides: true,
+    center: true,
+    highlight: false,
+    cropBoxMovable: true,
+    cropBoxResizable: true,
+    toggleDragModeOnDblclick: false,
+    ready: function() {
+      document.getElementById('zoom-range').value = 1;
+    },
+    zoom: function(e) {
+      // Sync zoom slider when zoomed via touch/wheel
+      if (e.detail && e.detail.ratio) {
+        document.getElementById('zoom-range').value = Math.min(Math.max(e.detail.ratio, 0.1), 3);
+      }
+    }
+  });
+}
+
+function setOrientation(mode) {
+  currentOrientation = mode;
+
+  // Update button active state
+  document.getElementById('btn-horizontal').classList.remove('active');
+  document.getElementById('btn-vertical').classList.remove('active');
+  document.getElementById('btn-square').classList.remove('active');
+  document.getElementById('btn-' + mode).classList.add('active');
+
+  const vertOptions = document.getElementById('vertical-options');
+  if (mode === 'vertical') {
+    vertOptions.style.display = 'block';
+  } else {
+    vertOptions.style.display = 'none';
+  }
+
+  if (cropper) {
+    let ratio = 800 / 480;
+    if (mode === 'vertical') ratio = 480 / 800;
+    if (mode === 'square') ratio = 1 / 1;
+    cropper.setAspectRatio(ratio);
+  }
+}
+
+function zoomImage(delta) {
+  if (cropper) {
+    cropper.zoom(delta);
+  }
+}
+
+function onZoomSlider(val) {
+  if (cropper) {
+    cropper.zoomTo(parseFloat(val));
+  }
+}
+
+function rotateImage(deg) {
+  if (cropper) {
+    cropper.rotate(deg);
+  }
+}
+
+function resetCropper() {
+  if (cropper) {
+    cropper.reset();
+    document.getElementById('zoom-range').value = 1;
+  }
+}
+
+function changeImageFile() {
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  document.getElementById('img-input').value = '';
+  document.getElementById('crop-studio').style.display = 'none';
+  document.getElementById('drop-zone').style.display = 'block';
+  const preview = document.getElementById('current-display-preview');
+  if (preview) preview.style.display = 'block';
+}
+
+function uploadCroppedImage() {
+  if (!cropper) return;
+
+  showLoading();
+
+  let targetW = 800;
+  let targetH = 480;
+  if (currentOrientation === 'vertical') {
+    targetW = 480;
+    targetH = 800;
+  } else if (currentOrientation === 'square') {
+    targetW = 480;
+    targetH = 480;
+  }
+
+  const canvas = cropper.getCroppedCanvas({
+    width: targetW,
+    height: targetH,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+
+  if (!canvas) {
+    alert("Could not process crop. Please try again.");
+    $("#loading-overlay").fadeOut(200);
+    return;
+  }
+
+  canvas.toBlob(function(blob) {
+    if (!blob) {
+      alert("Failed to export cropped image.");
+      $("#loading-overlay").fadeOut(200);
+      return;
+    }
+
+    const formData = new FormData();
+    const originalName = currentFile ? currentFile.name : 'artwork.jpg';
+    formData.append('img', blob, originalName);
+    formData.append('orientation', currentOrientation);
+
+    if (currentOrientation === 'vertical') {
+      const modeInput = document.querySelector('input[name="vertical_mode"]:checked');
+      if (modeInput) {
+        formData.append('vertical_mode', modeInput.value);
+      }
+    }
+
+    fetch('/', {
+      method: 'POST',
+      body: formData
+    }).then(function(res) {
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else {
+        window.location.href = '/done';
+      }
+    }).catch(function(err) {
+      alert("Upload failed: " + err);
+      $("#loading-overlay").fadeOut(200);
+    });
+  }, 'image/jpeg', 0.95);
+}
+</script>
+{% endblock %}
